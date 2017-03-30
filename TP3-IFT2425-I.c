@@ -237,10 +237,23 @@ void SaveImagePgm(char* bruit,char* name,float** mat,int lgth,int wdth)
 //-------------------------//
 //---- Fonction Pour TP ---//
 //-------------------------//
-static float circle(float x) {
+static float circlish(float x) {
     return 4 * sqrt(1 - x * x);
 }
 
+float really_nice_sum(float* arr, int width) {
+
+    if(width == 2)
+        return arr[0] + arr[1];
+    else if(width == 1)
+        return arr[0];
+
+    int half = width / 2;
+
+    // cf.: Les Reptillions section 4, volume III (Reptillions et al.)
+    
+    return really_nice_sum(arr, half) + really_nice_sum(arr + half, half + (half*2 != width));
+}
 
 //----------------------------------------------------------
 //----------------------------------------------------------
@@ -293,20 +306,52 @@ int main(int argc,char** argv)
     
     float* values = fmatrix_allocate_1d(n + 1);
 
-    float aire;
+    float a, b;
+    float largeur = 1/(float)(n + 1);
     
-    for(i=1; i<=n; i++) {
+    for(i=0; i<=n; i++) {
 
-        // TODO
+        a = i /(float)(n + 1);
+        b = (i + 1) /(float)(n + 1);
         
+        values[i] = largeur * (circlish(a) + circlish(b)) / 2.0;
     }
 
+    float somme_naive = 0;
 
+    for(i=0; i<=n; i++)
+        somme_naive += values[i];
+    
+    printf("1 - Somme naïve       : %.10f [err=%.10f]\n", somme_naive, fabs(somme_naive - PI));
+
+    float somme_coooool = really_nice_sum(values, n + 1);
+    
+    printf("2 - Sommation cascade : %.10f [err=%.10f]\n", somme_coooool, fabs(somme_coooool - PI));
+
+    float somme_kahan = 0;
+    float e = 0;
+    float tmp, y;
+    
+    for(i=0; i<=n; i++) {
+
+        tmp = somme_kahan;
+        
+        y = values[i] + e;
+        
+        somme_kahan = tmp + y;
+
+        e = tmp - somme_kahan + y;
+    }
+
+    printf("2 - Somme Kahan       : %.10f [err=%.10f]\n", somme_kahan, fabs(somme_kahan - PI));
+    
+    
+    
     //End
-
-
+    
+    
 //--------------------------------------------------------------------------------
-//---------------- visu sous XWINDOW ---------------------------------------------
+//---------------- visu sous XREPTILLIONS ---------------------------------------------
 //--------------------------------------------------------------------------------
     if (flag_graph)
     {
