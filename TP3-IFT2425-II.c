@@ -241,7 +241,7 @@ void SaveImagePgm(char* bruit,char* name,float** mat,int lgth,int wdth)
 //-------------------------//
 //---- Fonction Pour TP ---//
 //-------------------------//
-static inline float circlish(float x) {
+static float circlish(float x) {
     return 4 * sqrt(1 - x * x);
 }
 
@@ -280,7 +280,7 @@ int main(int argc,char** argv)
 
     length=width=4096;
     float** Graph2D=fmatrix_allocate_2d(length,width);
-    flag_graph=0;
+    flag_graph=1;
     zoom=-16;
 
     //Affichage Axes
@@ -303,53 +303,29 @@ int main(int argc,char** argv)
     float* VctPts=fmatrix_allocate_1d(NbInt+1);
 
     //Programmer ici
+    float mu=0, x=0.5, x_pp=0;
 
-    float pi = 0;
-
-    int n = 5000000;
+    int rescaled_x, rescaled_mu;
     
-    float* values = fmatrix_allocate_1d(n + 1);
+    for(mu=2.5; mu <= 4; mu += 0.0001) {
 
-    float a, b;
-    float largeur = 1/(float)(n + 1);
-    
-    for(i=0; i<=n; i++) {
+        for(i=0; i<20000; i++) {
 
-        a = i /(float)(n + 1);
-        b = (i + 1) /(float)(n + 1);
+            x_pp = mu * x * (1 - x);
+            
+            if(i >= 10000) {
+
+                rescaled_x = 4096 - x_pp * 4096 - 1;
+                rescaled_mu = (mu - 2.5) / 1.5 * 4096;
+                
+                Graph2D[rescaled_x][rescaled_mu] = 0;
+            }
+            
+            
+            x = x_pp;
+        }
         
-        values[i] = largeur * (circlish(a) + circlish(b)) / 2.0;
     }
-
-    float somme_naive = 0;
-
-    for(i=0; i<=n; i++)
-        somme_naive += values[i];
-    
-    printf("1 - Somme naïve       : %.10f [err=%.10f]\n", somme_naive, fabs(somme_naive - PI));
-
-    float somme_coooool = really_nice_sum(values, n + 1);
-    
-    printf("2 - Sommation cascade : %.10f [err=%.10f]\n", somme_coooool, fabs(somme_coooool - PI));
-
-    float somme_kahan = 0;
-    float e = 0;
-    float tmp, y;
-    
-    for(i=0; i<=n; i++) {
-
-        tmp = somme_kahan;
-        
-        y = values[i] + e;
-        
-        somme_kahan = tmp + y;
-
-        e = tmp - somme_kahan + y;
-    }
-
-    printf("2 - Somme Kahan       : %.10f [err=%.10f]\n", somme_kahan, fabs(somme_kahan - PI));
-    
-    
     
     //End
     

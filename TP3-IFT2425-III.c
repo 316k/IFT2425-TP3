@@ -241,11 +241,8 @@ void SaveImagePgm(char* bruit,char* name,float** mat,int lgth,int wdth)
 //-------------------------//
 //---- Fonction Pour TP ---//
 //-------------------------//
-static inline float circlish(float x) {
-    return 4 * sqrt(1 - x * x);
-}
 
-float really_nice_sum(float* arr, int width) {
+double really_nice_sum(double* arr, int width) {
 
     if(width == 2)
         return arr[0] + arr[1];
@@ -304,53 +301,37 @@ int main(int argc,char** argv)
 
     //Programmer ici
 
-    float pi = 0;
+    float mu = 4.0;
+    int N = 10000000;
 
-    int n = 5000000;
-    
-    float* values = fmatrix_allocate_1d(n + 1);
+    double x;
 
-    float a, b;
-    float largeur = 1/(float)(n + 1);
-    
-    for(i=0; i<=n; i++) {
+    float init[] = {0.2, 0.4, 0.6};
 
-        a = i /(float)(n + 1);
-        b = (i + 1) /(float)(n + 1);
+    double* values = (double*) malloc(sizeof(double) * N);
+
+    for(k=0; k<3; k++) {
+
+        x = init[k];
         
-        values[i] = largeur * (circlish(a) + circlish(b)) / 2.0;
+        for(i=0; i<N; i++) {
+            values[i] = mu * x * (1 - x);
+
+            x = values[i];
+        }
+
+        
+        double sum = 0;
+    
+        for(i=0; i<N; i++) {
+            
+            sum += sqrt(values[i]);
+        
+        }
+
+        printf("[%.2f] : %.10f\n", init[k], 2*N / sum);
     }
 
-    float somme_naive = 0;
-
-    for(i=0; i<=n; i++)
-        somme_naive += values[i];
-    
-    printf("1 - Somme naïve       : %.10f [err=%.10f]\n", somme_naive, fabs(somme_naive - PI));
-
-    float somme_coooool = really_nice_sum(values, n + 1);
-    
-    printf("2 - Sommation cascade : %.10f [err=%.10f]\n", somme_coooool, fabs(somme_coooool - PI));
-
-    float somme_kahan = 0;
-    float e = 0;
-    float tmp, y;
-    
-    for(i=0; i<=n; i++) {
-
-        tmp = somme_kahan;
-        
-        y = values[i] + e;
-        
-        somme_kahan = tmp + y;
-
-        e = tmp - somme_kahan + y;
-    }
-
-    printf("2 - Somme Kahan       : %.10f [err=%.10f]\n", somme_kahan, fabs(somme_kahan - PI));
-    
-    
-    
     //End
     
     
